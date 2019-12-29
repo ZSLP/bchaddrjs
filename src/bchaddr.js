@@ -165,11 +165,11 @@ function toSlpRegtestAddress (address) {
 var VERSION_BYTE = {}
 VERSION_BYTE[Format.Legacy] = {}
 VERSION_BYTE[Format.Legacy][Network.Mainnet] = {}
-VERSION_BYTE[Format.Legacy][Network.Mainnet][Type.P2PKH] = 0
-VERSION_BYTE[Format.Legacy][Network.Mainnet][Type.P2SH] = 5
+VERSION_BYTE[Format.Legacy][Network.Mainnet][Type.P2PKH] = [28, 184]
+VERSION_BYTE[Format.Legacy][Network.Mainnet][Type.P2SH] = [28, 189]
 VERSION_BYTE[Format.Legacy][Network.Testnet] = {}
-VERSION_BYTE[Format.Legacy][Network.Testnet][Type.P2PKH] = 111
-VERSION_BYTE[Format.Legacy][Network.Testnet][Type.P2SH] = 196
+VERSION_BYTE[Format.Legacy][Network.Testnet][Type.P2PKH] = [29, 37]
+VERSION_BYTE[Format.Legacy][Network.Testnet][Type.P2SH] = [28, 186]
 VERSION_BYTE[Format.Bitpay] = {}
 VERSION_BYTE[Format.Bitpay][Network.Mainnet] = {}
 VERSION_BYTE[Format.Bitpay][Network.Mainnet][Type.P2PKH] = 28
@@ -202,11 +202,11 @@ function decodeAddress (address) {
 }
 
 /**
- * Length of a valid base58check encoding payload: 1 byte for
+ * Length of a valid base58check encoding payload: 2 bytes for
  * the version byte plus 20 bytes for a RIPEMD-160 hash.
  * @private
  */
-var BASE_58_CHECK_PAYLOAD_LENGTH = 21
+var BASE_58_CHECK_PAYLOAD_LENGTH = 22
 
 /**
  * Attempts to decode the given address assuming it is a base58 address.
@@ -221,8 +221,8 @@ function decodeBase58Address (address) {
     if (payload.length !== BASE_58_CHECK_PAYLOAD_LENGTH) {
       throw new InvalidAddressError()
     }
-    var versionByte = payload[0]
-    var hash = Array.prototype.slice.call(payload, 1)
+    var versionByte = Array.prototype.slice.call(payload, 0, 2)
+    var hash = Array.prototype.slice.call(payload, 2)
     switch (versionByte) {
       case VERSION_BYTE[Format.Legacy][Network.Mainnet][Type.P2PKH]:
         return {
@@ -347,7 +347,7 @@ function decodeSlpAddress (address) {
     } catch (error) {
     }
   } else {
-    var prefixes = ['simpleledger', 'slptest', 'slpreg']
+    var prefixes = ['zslp', 'zslptest', 'zslpreg']
     for (var i = 0; i < prefixes.length; ++i) {
       try {
         var prefix = prefixes[i]
@@ -372,15 +372,15 @@ function decodeSlpAddressWithPrefix (address) {
     var hash = Array.prototype.slice.call(decoded.hash, 0)
     var type = decoded.type === 'P2PKH' ? Type.P2PKH : Type.P2SH
     switch (decoded.prefix) {
-      case 'simpleledger':
+      case 'zslp':
         return {
           hash: hash,
           format: Format.Slpaddr,
           network: Network.Mainnet,
           type: type
         }
-      case 'slptest':
-      case 'slpreg':
+      case 'zslptest':
+      case 'zslpreg':
         return {
           hash: hash,
           format: Format.Slpaddr,
@@ -401,9 +401,9 @@ function decodeSlpAddressWithPrefix (address) {
  */
 function encodeAsLegacy (decoded) {
   var versionByte = VERSION_BYTE[Format.Legacy][decoded.network][decoded.type]
-  var buffer = Buffer.alloc(1 + decoded.hash.length)
-  buffer[0] = versionByte
-  buffer.set(decoded.hash, 1)
+  var buffer = Buffer.alloc(2 + decoded.hash.length)
+  buffer.set(versionByte, 0)
+  buffer.set(decoded.hash, 2)
   return bs58check.encode(buffer)
 }
 
@@ -441,7 +441,7 @@ function encodeAsCashaddr (decoded) {
  * @returns {string}
  */
 function encodeAsSlpaddr (decoded) {
-  var prefix = decoded.network === Network.Mainnet ? 'simpleledger' : 'slptest'
+  var prefix = decoded.network === Network.Mainnet ? 'zslp' : 'zslptest'
   var type = decoded.type === Type.P2PKH ? 'P2PKH' : 'P2SH'
   var hash = Uint8Array.from(decoded.hash)
   return cashaddr.encode(prefix, type, hash)
@@ -467,7 +467,7 @@ function encodeAsRegtestaddr (decoded) {
  * @returns {string}
  */
 function encodeAsSlpRegtestaddr (decoded) {
-  var prefix = 'slpreg'
+  var prefix = 'zslpreg'
   var type = decoded.type === Type.P2PKH ? 'P2PKH' : 'P2SH'
   var hash = Uint8Array.from(decoded.hash)
   return cashaddr.encode(prefix, type, hash)
