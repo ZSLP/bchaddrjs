@@ -165,11 +165,11 @@ function toSlpRegtestAddress (address) {
 var VERSION_BYTE = {}
 VERSION_BYTE[Format.Legacy] = {}
 VERSION_BYTE[Format.Legacy][Network.Mainnet] = {}
-VERSION_BYTE[Format.Legacy][Network.Mainnet][Type.P2PKH] = [28, 184]
-VERSION_BYTE[Format.Legacy][Network.Mainnet][Type.P2SH] = [28, 189]
+VERSION_BYTE[Format.Legacy][Network.Mainnet][Type.P2PKH] = 0x1cb8
+VERSION_BYTE[Format.Legacy][Network.Mainnet][Type.P2SH] = 0x1cbd
 VERSION_BYTE[Format.Legacy][Network.Testnet] = {}
-VERSION_BYTE[Format.Legacy][Network.Testnet][Type.P2PKH] = [29, 37]
-VERSION_BYTE[Format.Legacy][Network.Testnet][Type.P2SH] = [28, 186]
+VERSION_BYTE[Format.Legacy][Network.Testnet][Type.P2PKH] = 0x1d25
+VERSION_BYTE[Format.Legacy][Network.Testnet][Type.P2SH] = 0x1cba
 VERSION_BYTE[Format.Bitpay] = {}
 VERSION_BYTE[Format.Bitpay][Network.Mainnet] = {}
 VERSION_BYTE[Format.Bitpay][Network.Mainnet][Type.P2PKH] = 28
@@ -221,7 +221,7 @@ function decodeBase58Address (address) {
     if (payload.length !== BASE_58_CHECK_PAYLOAD_LENGTH) {
       throw new InvalidAddressError()
     }
-    var versionByte = Array.prototype.slice.call(payload, 0, 2)
+    var versionByte = payload.readUInt16BE(0)
     var hash = Array.prototype.slice.call(payload, 2)
     switch (versionByte) {
       case VERSION_BYTE[Format.Legacy][Network.Mainnet][Type.P2PKH]:
