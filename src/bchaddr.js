@@ -402,7 +402,7 @@ function decodeSlpAddressWithPrefix (address) {
 function encodeAsLegacy (decoded) {
   var versionByte = VERSION_BYTE[Format.Legacy][decoded.network][decoded.type]
   var buffer = Buffer.alloc(2 + decoded.hash.length)
-  buffer.set(versionByte, 0)
+  buffer.writeUInt16BE(versionByte, 0)
   buffer.set(decoded.hash, 2)
   return bs58check.encode(buffer)
 }
