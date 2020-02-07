@@ -61,6 +61,6 @@
   },
   "dependencies": {
     "bs58check": "^2.1.2",
-    "cashaddrjs-slp": "ZSLP/cashaddrjs"
+    "cashaddrjs-slp": "ZSLP/cashaddrjs#dd821b23708fde87b986b3d6ee882d40ea08cdd4"
   }
 }
